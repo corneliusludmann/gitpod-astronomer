@@ -1,0 +1,23 @@
+image:
+  file: .gitpod.Dockerfile
+
+ports:
+  # Application
+  - port: 8080
+    visibility: private
+  # Database
+  - port: 5432
+    visibility: private
+    onOpen: ignore
+
+tasks:
+  - init: |
+      pushd ap-airflow-onbuild
+      docker build . -t quay.io/astronomer/ap-airflow:2.0.0-buster-onbuild
+      popd
+      docker pull postgres:12.2
+    command: |
+      astro dev start
+      printf "\nWaiting for the application ..."
+      until $(curl --output /dev/null --silent --head --fail localhost:8080); do printf '.'; sleep 5; done
+      printf "\n\n\nReady. Open $(gp url 8080) in a browser tab.\n\n"
